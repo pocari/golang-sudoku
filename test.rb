@@ -19,3 +19,7 @@ end
   end
   puts
 end
+
+(0 .. 9).each do |i|
+  printf("0x%03x  // %s %09b\n", 1 << i-1, i, 1 << i-1)
+end
