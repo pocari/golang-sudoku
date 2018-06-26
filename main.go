@@ -204,9 +204,15 @@ func loadQuestion(numbers []string) *question {
 	}
 }
 
-func dumpBoard(board [][]int) {
-	for _, row := range board {
-		for _, cell := range row {
+func (q *question) dumpBoard() {
+	for r, row := range q.board {
+		if r != 0 && r%3 == 0 {
+			fmt.Println("------+------+------")
+		}
+		for c, cell := range row {
+			if c != 0 && c%3 == 0 {
+				fmt.Print("|")
+			}
 			if cell == 0 {
 				fmt.Print(". ")
 			} else {
@@ -325,7 +331,7 @@ func heuristicA(q *question) []journal {
 						q.putNumber(i, r, c)
 						journals = append(journals, journal{number: i, row: r, col: c})
 						//fmt.Printf("(num, r, c) ... (%v, %v, %v)\n", i, r, c)
-						//dumpBoard(q.board)
+						//q.dumpBoard(q.board)
 						changed = true
 					}
 				}
@@ -361,16 +367,16 @@ func main() {
 	qs := loadQuestions(os.Stdin)
 	for i, q := range qs {
 		fmt.Printf("No. %v\n", i+1)
-		fmt.Println("q ---------------")
-		dumpBoard(q.board)
-		fmt.Println("a ---------------")
+		fmt.Println("q")
+		q.dumpBoard()
+		fmt.Println("\nans")
 		start := time.Now()
 		if !solveSudoku(q, false) {
 			panic("error solve")
 		}
 		end := time.Now()
 
-		dumpBoard(q.board)
+		q.dumpBoard()
 		fmt.Printf("%f sec\n", (end.Sub(start)).Seconds())
 		fmt.Println()
 
