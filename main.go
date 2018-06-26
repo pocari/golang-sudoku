@@ -7,6 +7,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 )
 
 var (
@@ -363,10 +364,15 @@ func main() {
 		fmt.Println("q ---------------")
 		dumpBoard(q.board)
 		fmt.Println("a ---------------")
+		start := time.Now()
 		if !solveSudoku(q, false) {
 			panic("error solve")
 		}
+		end := time.Now()
+
 		dumpBoard(q.board)
+		fmt.Printf("%f sec\n", (end.Sub(start)).Seconds())
 		fmt.Println()
+
 	}
 }
