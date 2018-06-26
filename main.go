@@ -294,7 +294,7 @@ func solveSudokuHelper(q *question, pos int) bool {
 			// どれかを試す
 			if q.canPut(i, r, c) {
 				q.putNumber(i, r, c)
-				if solveSudokuHelper(q, pos+1) {
+				if solveSudoku(q, true) {
 					return true
 				}
 				q.removeNumber(r, c)
@@ -305,7 +305,14 @@ func solveSudokuHelper(q *question, pos int) bool {
 	return solveSudokuHelper(q, pos+1)
 }
 
-func heuristicA(q *question) {
+type journal struct {
+	number int
+	row    int
+	col    int
+}
+
+func heuristicA(q *question) []journal {
+	journals := make([]journal, 0)
 	for {
 		changed := false
 		eachCells(q.board, func(r, c, num int) {
@@ -315,7 +322,9 @@ func heuristicA(q *question) {
 					if candidates == numBits[i] {
 						// 候補の数字が一つだけならそのマスはその数字で確定
 						q.putNumber(i, r, c)
+						journals = append(journals, journal{number: i, row: r, col: c})
 						//fmt.Printf("(num, r, c) ... (%v, %v, %v)\n", i, r, c)
+						//dumpBoard(q.board)
 						changed = true
 					}
 				}
@@ -327,16 +336,24 @@ func heuristicA(q *question) {
 		if !changed {
 			break
 		} else {
-			fmt.Println("do method A")
+			//fmt.Println("do method A")
 		}
 	}
+	return journals
 }
 
 // 数独を解く
-func solveSudoku(q *question) bool {
+func solveSudoku(q *question, tryMode bool) bool {
+	//fmt.Printf("solveSudoku tryMode: %v\n", tryMode)
 	//確定サーチA 候補が一つの場合はその数字で確定させる
-	heuristicA(q)
-	return solveSudokuHelper(q, 0)
+	journals := heuristicA(q)
+	if !solveSudokuHelper(q, 0) && tryMode {
+		for _, j := range journals {
+			q.removeNumber(j.row, j.col)
+		}
+		return false
+	}
+	return true
 }
 
 func main() {
@@ -346,7 +363,7 @@ func main() {
 		fmt.Println("q ---------------")
 		dumpBoard(q.board)
 		fmt.Println("a ---------------")
-		if !solveSudoku(q) {
+		if !solveSudoku(q, false) {
 			panic("error solve")
 		}
 		dumpBoard(q.board)
