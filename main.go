@@ -243,49 +243,8 @@ func eachCells(board [][]int, fn func(int, int, int)) {
 	}
 }
 
-func clearCheck(check []int) {
-	for i := range check {
-		check[i] = 0
-	}
-}
-
 func blockID(r, c int) int {
 	return (r/3)*3 + c/3
-}
-
-func isValid(board [][]int, r, c int) bool {
-	check := make([]int, maxn+1)
-	for i := 0; i < int(maxn); i++ {
-		j := board[r][i]
-		check[j]++
-		if j != 0 && check[j] > 1 {
-			return false
-		}
-	}
-
-	clearCheck(check)
-	for i := 0; i < int(maxn); i++ {
-		j := board[i][c]
-		check[j]++
-		if j != 0 && check[j] > 1 {
-			return false
-		}
-	}
-
-	clearCheck(check)
-	b := blockID(r, c)
-	for i := 0; i < int(maxn); i++ {
-		offsetr := b / 3 * 3
-		offsetc := b % 3 * 3
-		rx := (i / 3) + offsetr
-		cx := (i % 3) + offsetc
-		j := board[rx][cx]
-		check[j]++
-		if j != 0 && check[j] > 1 {
-			return false
-		}
-	}
-	return true
 }
 
 func solveSudokuHelper(q *question, pos int) bool {
