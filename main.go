@@ -31,6 +31,23 @@ type question struct {
 	uf    *usedFlags
 }
 
+func (q *question) candidates(r, c int) int {
+	b := blockID(r, c)
+	used := q.uf.row[r] | q.uf.col[c] | q.uf.blk[b]
+	return allBitOn ^ used
+}
+
+func (q *question) enableNumbers(r, c int) []int {
+	unused := q.candidates(r, c)
+	enableNumbers := make([]int, 0)
+	for i := 1; i <= int(maxn); i++ {
+		if unused&numBits[i] != 0 {
+			enableNumbers = append(enableNumbers, i)
+		}
+	}
+	return enableNumbers
+}
+
 func (q *question) canPut(number, r, c int) bool {
 	return q.uf.canPut(number, r, c)
 }
@@ -272,8 +289,8 @@ func solveSudokuHelper(q *question, pos int) bool {
 	r, c := posToRowCol(pos)
 	v := q.board[r][c]
 	if v == 0 {
-		// 数字が設定されていなかったら
-		for i := 1; i <= int(maxn); i++ {
+		nums := q.enableNumbers(r, c)
+		for _, i := range nums {
 			// どれかを試す
 			if q.canPut(i, r, c) {
 				q.putNumber(i, r, c)
@@ -288,8 +305,37 @@ func solveSudokuHelper(q *question, pos int) bool {
 	return solveSudokuHelper(q, pos+1)
 }
 
-// とりあえず全部バックトラックで解く
+func heuristicA(q *question) {
+	for {
+		changed := false
+		eachCells(q.board, func(r, c, num int) {
+			if num == 0 {
+				candidates := q.candidates(r, c)
+				for i := 1; i <= int(maxn); i++ {
+					if candidates == numBits[i] {
+						// 候補の数字が一つだけならそのマスはその数字で確定
+						q.putNumber(i, r, c)
+						//fmt.Printf("(num, r, c) ... (%v, %v, %v)\n", i, r, c)
+						changed = true
+					}
+				}
+			}
+		})
+
+		// 一回でも数字が確定していたら、その数字を元に確定する数字があるかもしれないので、
+		// もう一度確定サーチ実行
+		if !changed {
+			break
+		} else {
+			fmt.Println("do method A")
+		}
+	}
+}
+
+// 数独を解く
 func solveSudoku(q *question) bool {
+	//確定サーチA 候補が一つの場合はその数字で確定させる
+	heuristicA(q)
 	return solveSudokuHelper(q, 0)
 }
 
